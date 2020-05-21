@@ -7,6 +7,8 @@ on:
       - 'src/**'
       - 'Dockerfile'
       - '.github/workflows/**'
+    tags: 
+      - v*
   pull_request:
     branches: [ master ]
 
