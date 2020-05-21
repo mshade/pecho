@@ -57,7 +57,12 @@ def echo():
 
 @app.route('/ip')
 def ip():
-    resp = f"{request.remote_addr}\n"
+    if 'x-real-ip' in request.headers:
+        ip = request.headers['X-Real-Ip']
+    else:
+        ip = request.remote_addr
+
+    resp = f"{ip}\n"
     return resp
 
 #@app.route('/requestobj')
