@@ -35,9 +35,9 @@ def clean_status(status):
     except:
         return 404
 
-def html_wrap(resp):
+def html_wrap(resp, title="< - >"):
     resp = f"""
-<html><head><title>reflec.me < - ></title></head><body>
+<html><head><title>reflec.me | {title}</title></head><body>
 <pre>
 {resp}
 </pre>
@@ -50,13 +50,12 @@ def html_wrap(resp):
 @app.route('/')
 def index():
     echo = get_echo()
-    resp = f"""
-{logo}
+    resp = f"""{logo}
 reflec.me - simple reflective utilities.
 
 <a href="/ip">/ip</a> - return ip
 <a href="/echo">/echo</a> - echo request info
-<a href="/status/XXX">/status/XXX</a> - respond with given status code
+<a href="/status/200">/status/XXX</a> - respond with given status code
 -----------------------------------
 
 {echo}
@@ -70,7 +69,7 @@ reflec.me - simple reflective utilities.
 def echo():
     resp = f"{logo}\n"
     resp += get_echo()
-    resp = html_wrap(resp)
+    resp = html_wrap(resp, "- echo -")
     return Response(response=resp)
 
 
@@ -86,13 +85,28 @@ def ip():
     resp = f"{ip}\n"
     return Response(response=resp, mimetype='text/plain')
 
+@app.route('/status(|/)$', methods = all_methods)
+def status_index():
+
+    resp = f"""
+{logo}
+
+/status
+
+Examples:
+<a href="/status/200">/status/200</a>
+<a href="/status/403">/status/403</a>
+"""
+
+    resp = html_wrap(resp, "status")
+    return Response(response=resp)
 
 @app.route('/status/<code>', methods = all_methods )
 def status(code):
     code = clean_status(code)
     resp = f"{logo}\n{code}\n"
 
-    resp = html_wrap(resp)
+    resp = html_wrap(resp, f"{code}")
     return Response(response=resp, status=code)
 
 
