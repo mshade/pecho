@@ -47,6 +47,7 @@ def html_wrap(resp, title="< - >"):
 
     return resp
 
+
 @app.route('/')
 def index():
     echo = get_echo()
@@ -108,6 +109,17 @@ def status(code):
 
     resp = html_wrap(resp, f"{code}")
     return Response(response=resp, status=code)
+
+@app.errorhandler(404)
+def page_not_found(e):
+    resp = f"""{logo}
+404.
+
+"""
+    resp += get_echo()
+    resp = html_wrap(resp)
+
+    return Response(response=resp, status="404")
 
 
 #@app.route('/requestobj')
