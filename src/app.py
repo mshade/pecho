@@ -1,4 +1,5 @@
 from flask import Flask, Response, request
+import re
 
 class MyResponse(Response):
     default_mimetype = "text/plain"
@@ -6,43 +7,19 @@ class MyResponse(Response):
 app = Flask(__name__)
 app.response_class = MyResponse
 
-logo = """
- ____   ___    __  __ __   ___
-|    \ /  _]  /  ]|  |  | /   \ 
-|  o  )  [_  /  / |  |  ||     |
-|   _/    _]/  /  |  _  ||  O  |
-|  | |   [_/   \_ |  |  ||     |
-|  | |     \     ||  |  ||     |
-|__| |_____|\____||__|__| \___/
-
-"""
+all_methods = ['GET', 'HEAD', 'POST', 'PUT', 'OPTIONS', 'DELETE']
 
 logo = """
-██████╗ ███████╗ ██████╗██╗  ██╗ ██████╗
-██╔══██╗██╔════╝██╔════╝██║  ██║██╔═══██╗
-██████╔╝█████╗  ██║     ███████║██║   ██║
-██╔═══╝ ██╔══╝  ██║     ██╔══██║██║   ██║
-██║     ███████╗╚██████╗██║  ██║╚██████╔╝
-╚═╝     ╚══════╝ ╚═════╝╚═╝  ╚═╝ ╚═════╝
+ ██████╗ ███████╗███████╗██╗     ███████╗ ██████╗   ███╗   ███╗███████╗
+ ██╔══██╗██╔════╝██╔════╝██║     ██╔════╝██╔════╝   ████╗ ████║██╔════╝
+ ██████╔╝█████╗  █████╗  ██║     █████╗  ██║        ██╔████╔██║█████╗
+ ██╔══██╗██╔══╝  ██╔══╝  ██║     ██╔══╝  ██║        ██║╚██╔╝██║██╔══╝
+ ██║  ██║███████╗██║     ███████╗███████╗╚██████╗██╗██║ ╚═╝ ██║███████╗
+ ╚═╝  ╚═╝╚══════╝╚═╝     ╚══════╝╚══════╝ ╚═════╝╚═╝╚═╝     ╚═╝╚══════╝
 """
 
-@app.route('/')
-def index():
-    resp = f"""<pre>
-{logo}
-Welcome to pecho.
-<a href="/ip">/ip</a> - return ip
-<a href="/echo">/echo</a> - echo request info
-</pre>
-"""
-
-    return MyResponse(response=resp, mimetype="text/html")
-
-@app.route('/echo')
-def echo():
-    resp = f"{logo}\n"
-
-    resp += "Headers\n"
+def get_echo():
+    resp = "Headers\n"
     for h in request.headers:
         resp += ": ".join(str(i) for i in h) + "\n"
 
@@ -55,15 +32,58 @@ def echo():
 
     return resp
 
+def clean_status(status):
+    try:
+        cleaned = re.findall('[1-5]{1}[0-9]{2}', str(status))
+        return cleaned[0]
+    except:
+        return 404
+
+@app.route('/')
+def index():
+    echo = get_echo()
+    resp = f"""<pre>
+{logo}
+reflec.me - simple reflective utilities.
+
+<a href="/ip">/ip</a> - return ip
+<a href="/echo">/echo</a> - echo request info
+<a href="/status/XXX">/status/XXX</a> - respond with given status code
+-----------------------------------
+
+{echo}
+</pre>
+"""
+
+    return MyResponse(response=resp, mimetype="text/html")
+
+
+@app.route('/echo')
+def echo():
+    resp = f"{logo}\n"
+    resp += get_echo()
+    return resp
+
+
 @app.route('/ip')
 def ip():
-    if 'x-real-ip' in request.headers:
+    if 'cf-connecting-ip' in request.headers:
+        ip = request.headers['cf-connecting-ip']
+    elif 'x-real-ip' in request.headers:
         ip = request.headers['X-Real-Ip']
     else:
         ip = request.remote_addr
 
     resp = f"{ip}\n"
     return resp
+
+
+@app.route('/status/<code>', methods = all_methods )
+def status(code):
+    code = clean_status(code)
+    resp = f"{logo}\n{code}\n"
+
+    return MyResponse(response=resp, status=code)
 
 #@app.route('/requestobj')
 #def requestobj():
