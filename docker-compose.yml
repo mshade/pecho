@@ -1,0 +1,14 @@
+# for dev
+version: '3'
+
+services:
+  flask:
+    build: .
+    volumes:
+      - ./src:/app
+    ports:
+      - 5000:5000
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+    command: ['flask', 'run', '-h', '0.0.0.0']
