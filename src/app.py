@@ -1,11 +1,7 @@
 from flask import Flask, Response, request
 import re
 
-class MyResponse(Response):
-    default_mimetype = "text/plain"
-
 app = Flask(__name__)
-app.response_class = MyResponse
 
 all_methods = ['GET', 'HEAD', 'POST', 'PUT', 'OPTIONS', 'DELETE']
 
@@ -39,10 +35,22 @@ def clean_status(status):
     except:
         return 404
 
+def html_wrap(resp):
+    resp = f"""
+<html><head><title>reflec.me < - ></title></head><body>
+<pre>
+{resp}
+</pre>
+</body>
+</html>
+"""
+
+    return resp
+
 @app.route('/')
 def index():
     echo = get_echo()
-    resp = f"""<pre>
+    resp = f"""
 {logo}
 reflec.me - simple reflective utilities.
 
@@ -52,17 +60,18 @@ reflec.me - simple reflective utilities.
 -----------------------------------
 
 {echo}
-</pre>
 """
 
-    return MyResponse(response=resp, mimetype="text/html")
+    resp = html_wrap(resp)
+    return Response(response=resp)
 
 
 @app.route('/echo')
 def echo():
     resp = f"{logo}\n"
     resp += get_echo()
-    return resp
+    resp = html_wrap(resp)
+    return Response(response=resp)
 
 
 @app.route('/ip')
@@ -75,7 +84,7 @@ def ip():
         ip = request.remote_addr
 
     resp = f"{ip}\n"
-    return resp
+    return Response(response=resp, mimetype='text/plain')
 
 
 @app.route('/status/<code>', methods = all_methods )
@@ -83,7 +92,9 @@ def status(code):
     code = clean_status(code)
     resp = f"{logo}\n{code}\n"
 
-    return MyResponse(response=resp, status=code)
+    resp = html_wrap(resp)
+    return Response(response=resp, status=code)
+
 
 #@app.route('/requestobj')
 #def requestobj():
