@@ -1,0 +1,34 @@
+name: Docker Image for pecho
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'src/**'
+      - 'Dockerfile'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    name: Build and Push
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout repo'
+        uses: actions/checkout@v2
+        
+      - name: 'Build and Push'
+        uses: docker/build-push-action@v1
+        with:
+          username: mshade
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: mshade/pecho
+          tag_with_ref: true
+
+      - name: Docker Hub Description
+        uses: peter-evans/dockerhub-description@v2
+        env:
+          DOCKERHUB_USERNAME: mshade
+          DOCKERHUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          DOCKERHUB_REPOSITORY: mshade/pecho
