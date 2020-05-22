@@ -1,18 +1,25 @@
 from flask import Flask, Response, request
+import os
 import re
+
 
 app = Flask(__name__)
 
 all_methods = ['GET', 'HEAD', 'POST', 'PUT', 'OPTIONS', 'DELETE']
 
-logo = """
- ██████╗ ███████╗███████╗██╗     ███████╗ ██████╗   ███╗   ███╗███████╗
- ██╔══██╗██╔════╝██╔════╝██║     ██╔════╝██╔════╝   ████╗ ████║██╔════╝
- ██████╔╝█████╗  █████╗  ██║     █████╗  ██║        ██╔████╔██║█████╗
- ██╔══██╗██╔══╝  ██╔══╝  ██║     ██╔══╝  ██║        ██║╚██╔╝██║██╔══╝
- ██║  ██║███████╗██║     ███████╗███████╗╚██████╗██╗██║ ╚═╝ ██║███████╗
- ╚═╝  ╚═╝╚══════╝╚═╝     ╚══════╝╚══════╝ ╚═════╝╚═╝╚═╝     ╚═╝╚══════╝
+if os.environ.get('LOGO') is not None:
+    logo = os.environ['LOGO']
+else:
+    logo = """
+██████╗ ███████╗███████╗██╗     ███████╗ ██████╗   ███╗   ███╗███████╗
+██╔══██╗██╔════╝██╔════╝██║     ██╔════╝██╔════╝   ████╗ ████║██╔════╝
+██████╔╝█████╗  █████╗  ██║     █████╗  ██║        ██╔████╔██║█████╗
+██╔══██╗██╔══╝  ██╔══╝  ██║     ██╔══╝  ██║        ██║╚██╔╝██║██╔══╝
+██║  ██║███████╗██║     ███████╗███████╗╚██████╗██╗██║ ╚═╝ ██║███████╗
+╚═╝  ╚═╝╚══════╝╚═╝     ╚══════╝╚══════╝ ╚═════╝╚═╝╚═╝     ╚═╝╚══════╝
 """
+
+spacer = "= " * 10
 
 def get_echo():
     resp = "Headers\n"
@@ -30,7 +37,7 @@ def get_echo():
 
 def clean_status(status):
     try:
-        cleaned = re.findall('[1-5]{1}[0-9]{2}', str(status))
+        cleaned = re.search('[1-5]{1}[0-9]{2}', str(status))
         return cleaned[0]
     except:
         return 404
@@ -54,10 +61,12 @@ def index():
     resp = f"""{logo}
 reflec.me - simple reflective utilities.
 
+{spacer}
+Paths
 <a href="/ip">/ip</a> - return ip
 <a href="/echo">/echo</a> - echo request info
 <a href="/status/200">/status/XXX</a> - respond with given status code
------------------------------------
+{spacer}
 
 {echo}
 """
@@ -70,6 +79,7 @@ reflec.me - simple reflective utilities.
 def echo():
     resp = f"{logo}\n"
     resp += get_echo()
+
     resp = html_wrap(resp, "- echo -")
     return Response(response=resp)
 
@@ -86,17 +96,22 @@ def ip():
     resp = f"{ip}\n"
     return Response(response=resp, mimetype='text/plain')
 
-@app.route('/status(|/)$', methods = all_methods)
+@app.route('/status/', methods = all_methods)
 def status_index():
+    echo = get_echo()
+    resp = f"""{logo}
 
-    resp = f"""
-{logo}
-
-/status
+/status/
 
 Examples:
 <a href="/status/200">/status/200</a>
+<a href="/status/302">/status/302</a>
 <a href="/status/403">/status/403</a>
+<a href="/status/500">/status/500</a>
+
+{spacer}
+
+{echo}
 """
 
     resp = html_wrap(resp, "status")
@@ -105,20 +120,29 @@ Examples:
 @app.route('/status/<code>', methods = all_methods )
 def status(code):
     code = clean_status(code)
-    resp = f"{logo}\n{code}\n"
+    echo = get_echo()
+    resp = f"""{logo}
+{code}
+
+{spacer}
+
+{echo}
+"""
 
     resp = html_wrap(resp, f"{code}")
     return Response(response=resp, status=code)
 
 @app.errorhandler(404)
 def page_not_found(e):
+    echo = get_echo()
     resp = f"""{logo}
 404.
+{spacer}
 
+{echo}
 """
-    resp += get_echo()
-    resp = html_wrap(resp)
 
+    resp = html_wrap(resp)
     return Response(response=resp, status="404")
 
 

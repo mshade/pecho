@@ -11,4 +11,6 @@ services:
     environment:
       - FLASK_APP=app.py
       - FLASK_ENV=development
+      # Disable logo, or set to custom value
+      #- LOGO=
     command: ['flask', 'run', '-h', '0.0.0.0']
