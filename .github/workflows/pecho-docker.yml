@@ -27,6 +27,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           repository: mshade/pecho
           tag_with_ref: true
+          tag_with_sha: true
 
       - name: Docker Hub Description
         uses: peter-evans/dockerhub-description@v2
