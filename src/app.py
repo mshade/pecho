@@ -162,14 +162,3 @@ def page_not_found(e):
 
     resp = html_wrap(resp)
     return Response(response=resp, status="404")
-
-
-# @app.route('/requestobj')
-# def requestobj():
-#    resp = ""
-#
-#    gen = (k for k in dir(request) if k is not None)
-#    for k in gen:
-#        resp += f"{k}: {getattr(request,k)}\n"
-#
-#    return resp
