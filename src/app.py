@@ -5,10 +5,10 @@ import re
 
 app = Flask(__name__)
 
-all_methods = ['GET', 'HEAD', 'POST', 'PUT', 'OPTIONS', 'DELETE']
+all_methods = ["GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"]
 
-if os.environ.get('LOGO') is not None:
-    logo = os.environ['LOGO']
+if os.environ.get("LOGO") is not None:
+    logo = os.environ["LOGO"]
 else:
     logo = """
 ██████╗ ███████╗███████╗██╗     ███████╗ ██████╗   ███╗   ███╗███████╗
@@ -21,26 +21,41 @@ else:
 
 spacer = "= " * 10
 
+
 def get_echo():
     resp = "Headers\n"
     for h in request.headers:
         resp += ": ".join(str(i) for i in h) + "\n"
 
     resp += "\nRequest Info\n"
-    for x in ['full_path', 'host',
-            'method', 'path', 'query_string',
-            'referrer', 'remote_addr', 'remote_user',
-            'scheme', 'url', 'url_charset']:
+
+    fields = [
+        "full_path",
+        "host",
+        "method",
+        "path",
+        "query_string",
+        "referrer",
+        "remote_addr",
+        "remote_user",
+        "scheme",
+        "url",
+        "url_charset",
+    ]
+
+    for x in fields:
         resp += f"{x}: {str(getattr(request,x))}\n"
 
     return resp
 
+
 def clean_status(status):
     try:
-        cleaned = re.search('[1-5]{1}[0-9]{2}', str(status))
+        cleaned = re.search("[1-5]{1}[0-9]{2}", str(status))
         return cleaned[0]
     except:
         return 404
+
 
 def html_wrap(resp, title="< - >"):
     resp = f"""
@@ -55,7 +70,7 @@ def html_wrap(resp, title="< - >"):
     return resp
 
 
-@app.route('/')
+@app.route("/")
 def index():
     echo = get_echo()
     resp = f"""{logo}
@@ -75,7 +90,7 @@ Paths
     return Response(response=resp)
 
 
-@app.route('/echo')
+@app.route("/echo")
 def echo():
     resp = f"{logo}\n"
     resp += get_echo()
@@ -84,19 +99,20 @@ def echo():
     return Response(response=resp)
 
 
-@app.route('/ip')
+@app.route("/ip")
 def ip():
-    if 'cf-connecting-ip' in request.headers:
-        ip = request.headers['cf-connecting-ip']
-    elif 'x-real-ip' in request.headers:
-        ip = request.headers['X-Real-Ip']
+    if "cf-connecting-ip" in request.headers:
+        ip = request.headers["cf-connecting-ip"]
+    elif "x-real-ip" in request.headers:
+        ip = request.headers["X-Real-Ip"]
     else:
         ip = request.remote_addr
 
     resp = f"{ip}\n"
-    return Response(response=resp, mimetype='text/plain')
+    return Response(response=resp, mimetype="text/plain")
 
-@app.route('/status/', methods = all_methods)
+
+@app.route("/status/", methods=all_methods)
 def status_index():
     echo = get_echo()
     resp = f"""{logo}
@@ -117,7 +133,8 @@ Examples:
     resp = html_wrap(resp, "status")
     return Response(response=resp)
 
-@app.route('/status/<code>', methods = all_methods )
+
+@app.route("/status/<code>", methods=all_methods)
 def status(code):
     code = clean_status(code)
     echo = get_echo()
@@ -131,6 +148,7 @@ def status(code):
 
     resp = html_wrap(resp, f"{code}")
     return Response(response=resp, status=code)
+
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -146,8 +164,8 @@ def page_not_found(e):
     return Response(response=resp, status="404")
 
 
-#@app.route('/requestobj')
-#def requestobj():
+# @app.route('/requestobj')
+# def requestobj():
 #    resp = ""
 #
 #    gen = (k for k in dir(request) if k is not None)
@@ -155,4 +173,3 @@ def page_not_found(e):
 #        resp += f"{k}: {getattr(request,k)}\n"
 #
 #    return resp
-
